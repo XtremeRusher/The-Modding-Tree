@@ -1,30 +1,34 @@
 let modInfo = {
-	name: "The Xtreme Tree",
+	name: "Collection of Everything",
 	id: "XR2003",
 	author: "XtremeRusher",
-	pointsName: "points",
-	modFiles: ["layers.js", "tree.js"],
+	pointsName: "Knowledge",
+	modFiles: ["layers.js", "tree.js", "achieve.js"],
 
 	discordName: "",
 	discordLink: "",
-	initialStartPoints: new Decimal (0), // Used for hard resets and new players
-	offlineLimit: 1,  // In hours
+	initialStartPoints: new Decimal (10), // Used for hard resets and new players
+	offlineLimit: 0,  // In hours
 }
 
 // Set your version in num and name
 let VERSION = {
 	num: "0.1",
-	name: "Just a stone!",
+	name: "First Update",
 }
 
-let changelog = `<h1>Changelog:</h1><br>
+let changelog = `<h4>Changelog:</h4><br>
+	Added 3 layers:<br>
+	-Laboratory<br>
+	-Bamboo<br>
+	-Mushrooms<br>
 	<br>
-	<h2>v0.1 - Just a stone</h2><br>
-		- Added Stone and its 3 upgrades<br>
-		-=Endgame at: 100 points =-`
+	Bamboo unique mechanic has been Added "Harvest"<br>
+	Mini-Mushrooms has been Added in 2 types:<br>
+	-Bay Bolete<br>
+	-Chanterelle<br>`
 
-let winText = `Congratulations! You have become God over Gods... <br> ...from this point onward, you can create whatever you wish...`
-
+let winText = `Congratulations! You beat the game!`
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
 // (The ones here are examples, all official functions are already taken care of)
 var doNotCallTheseFunctionsEveryTick = ["blowUpEverything"]
@@ -42,10 +46,17 @@ function canGenPoints(){
 function getPointGen() {
 	if(!canGenPoints())
 		return new Decimal(0)
-
-	let gain = new Decimal(1)
-	if (hasUpgrade('s', 11)) gain = gain.times(2)
-	if (hasUpgrade('s', 12)) gain = gain.times(upgradeEffect('s', 12))
+		let gain = new Decimal(0)
+		if (hasUpgrade('s', 11)) {
+		gain = new Decimal(1)
+		if (hasUpgrade('s', 12)) gain = gain.times(2)
+		if (hasUpgrade('bam', 11)) gain = gain.times(4)
+		gain = gain.times(tmp.bam.effect)
+		if (hasUpgrade('s', 13)) gain = gain.add(upgradeEffect('s', 13))
+		gain = gain.add(player.mush.mushA)
+		if (hasUpgrade('s',14)) gain = gain.times(10)
+	}
+	
 	return gain
 }
 
@@ -54,12 +65,12 @@ function addedPlayerData() { return {
 }}
 
 // Display extra things at the top of the page
-var displayThings = [
+var displayThings = [ "Endgame at 10000 Mushrooms"
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.points.gte(new Decimal("e2"))
+	return player.mush.points.gte(new Decimal("1e4"))
 }
 
 
