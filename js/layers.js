@@ -154,7 +154,7 @@ addLayer("bam", {
 		12:{
 			title: "<img src='js/Bamboo.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Better Harvesting Methods",
 			tooltip: "This harvesting seems boring and fruitless, maybe i'm doing it wrong?",
-			cost: new Decimal(100),
+			cost: new Decimal(1000),
 			description: "Multiplies your harvest speed by 5",
 		},
 	},
