@@ -44,7 +44,7 @@ addLayer("s", {
 			currencyDisplayName:"Knowledge",
 			currencyInternalName:"points",
 			tooltip: "Material easy to gather, but durable against nature",
-			unlocked() {if (hasUpgrade('s', 11)) return true},
+			unlocked() {return hasUpgrade('s', 11)},
 			//effect() {
 			//return player[this.layer].points.add(player[this.layer].points).div(8).add(1)
 			//},
@@ -64,8 +64,8 @@ addLayer("s", {
 		//},
 		13: {
 			title: "<img src='js/Bamboo.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Paper",
-			description: "Points are boosted by itself",
-			cost: new Decimal(2500),
+			description: "Knowledge is boosted by itself",
+			cost: new Decimal(10000),
 			currencyDisplayName:"Bamboo",
 			currencyLayer: "bam",
 			currencyInternalName:"points",
@@ -73,7 +73,8 @@ addLayer("s", {
 			effect(){
 				return player.points.pow(0.25)
 			},
-			unlocked(){if (hasUpgrade('s', 12)) return true}
+			effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" },
+			unlocked(){return hasUpgrade('s', 12)}
 		},
 		14: {
 			title: "<img src='js/Bamboo.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Simple Bamboo Facility",
@@ -83,14 +84,11 @@ addLayer("s", {
 			currencyLayer: "bam",
 			currencyInternalName:"points",
 			tooltip: "Shelter made out moderatly-weak material",
-			effect(){
-				return player.points.pow(0.25)
-			},
-			unlocked(){if (hasUpgrade('s', 12)) return true}
+			unlocked(){return hasUpgrade('s', 12)}
 		},
 	},
     row: 0, // Row the layer is in on the tree (0 is the first row)
-    layerShown(){return true},
+    layerShown: true,
 	doReset(){
 		let keep = []
 		// declare keep
@@ -117,6 +115,7 @@ addLayer("bam", {
         unlocked: true,
 		points: new Decimal(0),
 		pHarvest: new Decimal(1),
+		pHarMax: new Decimal(1000),
     }},
     color: "#a5f57d",
     requires: new Decimal(20), // Can be a function that takes requirement increases into account
@@ -136,8 +135,8 @@ addLayer("bam", {
 	gainMult() {
         let mult = new Decimal(1)
 		if (hasMilestone('bam', 1)) mult = mult.times(player[this.layer].points.sqrt().sqrt().min(10))
-		if (player.bam.pHarvest<900 & hasMilestone('bam', 2)) mult = mult.times(player[this.layer].pHarvest.sqrt().div(5))
-		if (player.bam.pHarvest>900 & hasMilestone('bam', 2)) mult = mult.times(0)
+		if (player.bam.pHarvest<900 & hasMilestone('bam', 2)) mult = mult.times(player[this.layer].pHarvest.sqrt().div(4))
+		if (player.bam.pHarvest>=900 & hasMilestone('bam', 2)) mult = mult.times(player[this.layer].pHarMax.sub(player[this.layer].pHarvest)).sqrt().div(4).times(9)
 		mult = mult.times(player.mush.mushB.add(1))
         return mult
     },
@@ -156,6 +155,7 @@ addLayer("bam", {
 			tooltip: "This harvesting seems boring and fruitless, maybe i'm doing it wrong?",
 			cost: new Decimal(1000),
 			description: "Multiplies your harvest speed by 5",
+
 		},
 	},
 	bars: {
@@ -189,9 +189,9 @@ addLayer("bam", {
 			done() {return player.bam.points.gte(500) },
 		},
 		3: {
-			requirementDescription: "5000 Bamboo",
+			requirementDescription: "4000 Bamboo",
 			effectDescription: "Bamboo boosts its own effect slightly",
-			done() {return player.bam.points.gte(5000) },
+			done() {return player.bam.points.gte(3500) },
 			effect() {return player[this.layer].points.sqrt()},
 		},
 		4: {
@@ -207,7 +207,7 @@ addLayer("bam", {
 	infoboxes: {
 		harv: {
 			title: "Harvesting Bamboo ",
-			body() {return "Here you have to check if your Bamboo is growing properly. If harvested at the right time, you will gain more Bamboo. But if Bamboo is collected too late or too soon, it will heavily impact your Bamboo gain."},
+			body() {return "Here you have to check if your Bamboo is growing properly. If harvested at the right time, you will gain more Bamboo. But if Bamboo is collected too late, Bamboo will rot, negatively impacting your Bamboo gain."},
 		},
 	},
 	tabFormat: {
@@ -222,7 +222,7 @@ addLayer("bam", {
 		"Harvest": {
 			content:["main-display", "resource-display", "prestige-button", "blank", ["bar", "Harvest"],
 			"blank",["display-text", function(){return 'You have '+format(player.bam.pHarvest)+'/1000 Harvest Points'}],"blank",["infobox","harv"]],
-			unlocked(){if (hasMilestone('bam', 2)) {return true} else {return false}},
+			unlocked(){return hasMilestone('bam', 2)},
 		},
 	},
 	row: 1,
@@ -264,6 +264,12 @@ addLayer("mush", {
     baseAmount() {return player.points},
     type: "normal", 
     exponent: 0.5,
+	effect(){
+		return {
+			bayb: player.mush.points.div(500).times(20),
+			chan: player.mush.points.div(50000).times(20),
+		}
+	},
 	gainMult() {
         let mult = new Decimal(1)
         return mult
@@ -272,16 +278,20 @@ addLayer("mush", {
         return new Decimal(1)
     },
 	update(diff){
-		player.mush.mushA = player.mush.mushA.add(player.mush.points.div(500))
-		player.mush.mushB = player.mush.mushB.add(player.mush.points.div(50000))
+		player.mush.mushA = player.mush.mushA.add(tmp.mush.effect.bayb.times(diff))
+		player.mush.mushB = player.mush.mushB.add(tmp.mush.effect.chan.times(diff))
 	},
 	tabFormat: {
 		"Main": {
 			content:["main-display", "resource-display", "prestige-button", "blank", ["display-text", function(){
 				return 'You have <h3 style="color:#4D1F1C">'+format(player.mush.mushA)+'</h3> of Bay Bolete Mushrooms, which increases your point gain.'
 			}],["display-text", function(){
+				return '(<h3 style="color:#4D1F1C">'+format(tmp.mush.effect.bayb)+'</h3>/sec)'
+			}],"blank",["display-text", function(){
 				return 'You have <h3 style="color:#FFD64D">'+format(player.mush.mushB)+'</h3> of Chanterelle Mushrooms, which increases your Bamboo gain.'
-			}]],
+			}],["display-text", function(){
+				return '(<h3 style="color:#FFD64D">'+format(tmp.mush.effect.chan)+'</h3>/sec)'
+			}],],
 		},
 	},
 })

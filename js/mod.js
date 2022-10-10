@@ -13,20 +13,27 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.1",
-	name: "First Update",
+	num: "0.1.1",
+	name: "Bugfix Mini-Update",
 }
 
 let changelog = `<h4>Changelog:</h4><br>
+	<h2>0.1.1 - Bugfix Mini-Update</h2><br>
+	- Some minor changes in code<br>
+	- Mini-Mushrooms are now displaying amount per sec (x/sec)<br>
+	- Changed price of "Paper" Upgrade, it now costs 10k Bamboo and effect of this upgrade is now visible<br>
+	- 4th Bamboo milestone requirement has been nerfed (5000 => 4000)<br>
+	- Now "Rotting" of the Bamboo Harvest slightly decreases gain until 0 (It used to decrease instantly to 0)<br><br>
+	<h1>0.1 - First Update</h1><br>
 	Added 3 layers:<br>
-	-Laboratory<br>
-	-Bamboo<br>
-	-Mushrooms<br>
+	- Laboratory<br>
+	- Bamboo<br>
+	- Mushrooms<br>
 	<br>
 	Bamboo unique mechanic has been Added "Harvest"<br>
 	Mini-Mushrooms has been Added in 2 types:<br>
-	-Bay Bolete<br>
-	-Chanterelle<br>`
+	- Bay Bolete<br>
+	- Chanterelle<br>`
 
 let winText = `Congratulations! You beat the game!`
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
