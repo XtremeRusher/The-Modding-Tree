@@ -13,24 +13,45 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.1.1",
-	name: "Bugfix Mini-Update",
+	num: "0.2",
+	name: "Survival Update",
 }
 
 let changelog = `<h4>Changelog:</h4><br>
-	<h2>0.1.1 - Bugfix Mini-Update</h2><br>
-	- Some minor changes in code<br>
-	- Mini-Mushrooms are now displaying amount per sec (x/sec)<br>
-	- Changed price of "Paper" Upgrade, it now costs 10k Bamboo and effect of this upgrade is now visible<br>
-	- 4th Bamboo milestone requirement has been nerfed (5000 => 4000)<br>
+	<h1>0.2 - Survival Update</h1><br><br>
+	<h3>[Endgame at 5 Pickaxe Power]</h3><br><br>
+	- Added 3 New Functional Layers:<br>
+	Wood<br>
+	Crops<br>
+	Meat<br>
+	...And placeholder Layer: Stone<br><br>
+	- 4 New Tabs for Laboratory:<br>
+	Workbench, for making and upgrading tools<br>
+	Storage, to store ingridients and Cuisines<br>
+	Kitchen, to make said Cuisines<br>
+	and Dining Room, to eat mentioned Cuisines for Knowledge Gain<br><br>
+	- Added 5 new Achievements, including 1 Challenge Achievement<br><br>
+	- Changed Harvest Points into Harvest Gauge<br><br>
+	- Harvest Gauge now can overfill, after 900 Harvest Gauge will rot<br><br>
+	- Added 6 new Upgrades to Laboratory<br><br>
+	- Added new Mini-Mushroom type: Honey Mushroom, which boosts Wood Gain<br><br>
+	- and most Importantly, Added Food System, for boosting Knowledge Gain!<br>
+	(no one asked, but it taked around 2 days)<br><br>
+	- Fixed Critical bug of 2nd Bamboo Milestone
+	<h2>0.1.1 - Bugfix Mini-Update</h2><br><br>
+	- Some minor changes in code<br><br>
+	- Mini-Mushrooms are now displaying amount per sec (x/sec)<br><br>
+	- Changed price of "Paper" Upgrade, it now costs 10k Bamboo and effect of this upgrade is now visible<br><br>
+	- 4th Bamboo milestone requirement has been nerfed (5000 => 4000)<br><br>
 	- Now "Rotting" of the Bamboo Harvest slightly decreases gain until 0 (It used to decrease instantly to 0)<br><br>
-	<h1>0.1 - First Update</h1><br>
+	<h1>0.1 - First Update</h1><br><br>
+	<h3>[Endgame at 10.000 Mushrooms]</h3><br>
 	Added 3 layers:<br>
 	- Laboratory<br>
 	- Bamboo<br>
-	- Mushrooms<br>
+	- Mushrooms<br><br>
 	<br>
-	Bamboo unique mechanic has been Added "Harvest"<br>
+	Bamboo unique mechanic has been Added "Harvest"<br><br>
 	Mini-Mushrooms has been Added in 2 types:<br>
 	- Bay Bolete<br>
 	- Chanterelle<br>`
@@ -55,15 +76,18 @@ function getPointGen() {
 		return new Decimal(0)
 		let gain = new Decimal(0)
 		if (hasUpgrade('s', 11)) {
-		gain = new Decimal(1)
-		if (hasUpgrade('s', 12)) gain = gain.times(2)
-		if (hasUpgrade('bam', 11)) gain = gain.times(4)
-		gain = gain.times(tmp.bam.effect)
-		if (hasUpgrade('s', 13)) gain = gain.add(upgradeEffect('s', 13))
-		gain = gain.add(player.mush.mushA)
-		if (hasUpgrade('s',14)) gain = gain.times(10)
+			gain = new Decimal(1)
+			if (hasUpgrade('s', 12)) gain = gain.times(2)
+			if (hasUpgrade('bam', 11)) gain = gain.times(4)
+			if (hasUpgrade('s',14)) gain = gain.times(10)
+			if (hasUpgrade('w',14)) gain = gain.times(4)
+			gain = gain.times(tmp.bam.effect)
+			if (hasUpgrade('s', 13)) gain = gain.add(upgradeEffect('s', 13))
+			gain = gain.add(player.mush.mushA)
+			gain = gain.times(tmp.w.effect)
+			gain = gain.times(tmp.s.effect)
+			if(hasAchievement('a', 15)) gain = gain.times(1.1)
 	}
-	
 	return gain
 }
 
@@ -72,12 +96,12 @@ function addedPlayerData() { return {
 }}
 
 // Display extra things at the top of the page
-var displayThings = [ "Endgame at 10000 Mushrooms"
+var displayThings = [ "Endgame at 5 Pickaxe Power"
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.mush.points.gte(new Decimal("1e4"))
+	return player.s.PickPow.gte(new Decimal("5"))
 }
 
 
