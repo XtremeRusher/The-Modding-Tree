@@ -78,7 +78,7 @@ addLayer("a", {
 			done() {
 				return hasUpgrade('w', 13)
 			},
-			tooltip: "Collect 1st Wood Point.",
+			tooltip: "Buy 'Workbench' Upgrade",
 			style: {
 				width: "96px",
 				height: "96px",
