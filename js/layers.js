@@ -1160,7 +1160,7 @@ addLayer("w", {
     color() {
 		return "#995D2C"
 	},
-	row: "1",
+	row: 1,
 	branches: ['s'],
 	layerShown(){
 		if (hasUpgrade('s', 15) | player.w.points > 0) return true
@@ -1239,7 +1239,7 @@ addLayer("FoodA", {
     color() {
 		return "#AD8D22"
 	},
-	row: "1",
+	row: 1,
 	branches: ['bam'],
 	layerShown(){
 		if (getBuyableAmount('s', 21)>0) return true
@@ -1394,7 +1394,7 @@ addLayer("FoodB", {
     color() {
 		return "#992A2A"
 	},
-	row: "1",
+	row: 1,
 	branches: ['w'],
 	layerShown(){
 		if (getBuyableAmount('s', 12)>0) return true
@@ -1510,7 +1510,7 @@ addLayer("st", {
     color() {
 		return "#606A7A"
 	},
-	row: "2",
+	row: 2,
 	branches: ['w'],
 	layerShown(){
 		if (getBuyableAmount('s', 22)>0) return true
