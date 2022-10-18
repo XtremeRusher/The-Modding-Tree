@@ -3,7 +3,7 @@ let modInfo = {
 	id: "XR2003",
 	author: "XtremeRusher",
 	pointsName: "Knowledge",
-	modFiles: ["layers.js", "tree.js", "achieve.js"],
+	modFiles: ["layers.js", "tree.js", "achieve.js", "layers01.js"],
 
 	discordName: "",
 	discordLink: "",
@@ -13,11 +13,20 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.2",
-	name: "Survival Update",
+	num: "0.2.1",
+	name: "Survivalist Guide on Mini-Updates, Vol.1",
 }
 
 let changelog = `<h4>Changelog:</h4><br>
+	<h2>0.2.1 - Survivalist Guide on Mini-Updates, Vol.1</h2><br><br>
+	<h3>[Endgame at 1e15 Knowledge]</h3><br><br>
+	- Fixed some minor bugs, including:<br>
+	Potato clickable in Storage not disappearing at 0 Potatos<br>
+	Tools not consuming Wood<br>
+	Changed tooltip of "Fishing Rod"<br><br>
+	- Now Layers can glow on different colors!<br><br>
+	- Prices of some upgrades (mainly involving Wood) has been decreased<br><br>
+	- That Placeholder Layer (Stone) now resets nothing (Temporarily)<br><br><br><br>
 	<h1>0.2 - Survival Update</h1><br><br>
 	<h3>[Endgame at 5 Pickaxe Power]</h3><br><br>
 	- Added 3 New Functional Layers:<br>
@@ -37,20 +46,19 @@ let changelog = `<h4>Changelog:</h4><br>
 	- Added new Mini-Mushroom type: Honey Mushroom, which boosts Wood Gain<br><br>
 	- and most Importantly, Added Food System, for boosting Knowledge Gain!<br>
 	(no one asked, but it taked around 2 days)<br><br>
-	- Fixed Critical bug of 2nd Bamboo Milestone
+	- Fixed Critical bug of 2nd Bamboo Milestone<br><br><br><br>
 	<h2>0.1.1 - Bugfix Mini-Update</h2><br><br>
 	- Some minor changes in code<br><br>
 	- Mini-Mushrooms are now displaying amount per sec (x/sec)<br><br>
 	- Changed price of "Paper" Upgrade, it now costs 10k Bamboo and effect of this upgrade is now visible<br><br>
 	- 4th Bamboo milestone requirement has been nerfed (5000 => 4000)<br><br>
-	- Now "Rotting" of the Bamboo Harvest slightly decreases gain until 0 (It used to decrease instantly to 0)<br><br>
+	- Now "Rotting" of the Bamboo Harvest slightly decreases gain until 0 (It used to decrease instantly to 0)<br><br><br><br>
 	<h1>0.1 - First Update</h1><br><br>
-	<h3>[Endgame at 10.000 Mushrooms]</h3><br>
+	<h3>[Endgame at 10.000 Mushrooms]</h3><br><br>
 	Added 3 layers:<br>
 	- Laboratory<br>
 	- Bamboo<br>
 	- Mushrooms<br><br>
-	<br>
 	Bamboo unique mechanic has been Added "Harvest"<br><br>
 	Mini-Mushrooms has been Added in 2 types:<br>
 	- Bay Bolete<br>
@@ -96,12 +104,12 @@ function addedPlayerData() { return {
 }}
 
 // Display extra things at the top of the page
-var displayThings = [ "Endgame at 5 Pickaxe Power"
+var displayThings = [ "Endgame at 1e15 Knowledge"
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.s.PickPow.gte(new Decimal("5"))
+	return player.points.gte(new Decimal("1e15"))
 }
 
 
