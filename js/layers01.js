@@ -16,10 +16,15 @@ addLayer("bam", {
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     exponent: 0.5, // Prestige currency exponent
 	effect() {
+		if(hasMilestone('bam',5)) return player[this.layer].points.pow(0.5).add(1).add(tmp.bam.milestones[3].effect).div(softcap((player.bam.points.max(1)), new Decimal(5) , 0.275))
 		if(hasMilestone('bam',3)) return player[this.layer].points.pow(0.5).add(1).min(10).add(tmp.bam.milestones[3].effect).min(1.6e4)
 		return player[this.layer].points.pow(0.5).add(1).min(10)
 	},
+	effectSoft(){
+		return softcap((player.bam.points.max(1)), new Decimal(5) , 0.275)
+	},
 	effectDescription(){
+		if(hasMilestone('bam',5)) return "multiplying point gain by "+format(tmp[this.layer].effect)+",<br> Softcapped by "+format(tmp.bam.effectSoft)
 		return "multiplying point gain by " + format(tmp[this.layer].effect)
 	},
 	branches: ['s'],
@@ -30,9 +35,10 @@ addLayer("bam", {
 		if (player.bam.pHarvest>=900 & hasMilestone('bam', 2)) mult = mult.times(player[this.layer].pHarMax.sub(player[this.layer].pHarvest)).sqrt().div(4).times(9)
 		mult = mult.times(player.mush.mushB.add(1))
 		if (getBuyableAmount('s', 21)>0) mult = mult.times(buyableEffect('s', 21))
+		if (tmp.st.effect.st3>0) mult = mult.times(tmp.st.effect.st3)
         return mult
     },
-    gainExp() { // Calculate the exponent on main currency from bonuses
+    gainExp() {
         return new Decimal(1)
     },
 	upgrades:{
@@ -47,7 +53,32 @@ addLayer("bam", {
 			tooltip: "This harvesting seems boring and fruitless, maybe i'm doing it wrong?",
 			cost: new Decimal(1000),
 			description: "Multiplies your harvest speed by 5",
-
+		},
+		13:{
+			title: "<img src='js/Bamboo.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Bamboo Synergy",
+			tooltip: "I wouldn\'t be where I am now without this plant",
+			cost: new Decimal(5e16),
+			description: "Harvest Gauge now boost Knowledge Gain (No Nerf Effect Included!)",
+			effect(){
+				return player.bam.pHarvest.min(900).sqrt().div(4).add(1)
+			},
+			effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" },
+			unlocked(){
+				if(hasMilestone('st',0)) return true
+			},
+		},
+		14:{
+			title: "<img src='js/Bamboo.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Bamboo Decorations",
+			tooltip: "Let\'s give this material second life!",
+			cost: new Decimal(1e18),
+			description: "Bamboo effect boost Wood Effect and Wood Effect hardcap gets increased",
+			effect(){
+				return tmp.bam.effect.div(1600)
+			},
+			effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" },
+			unlocked(){
+				if(hasMilestone('st',0)) return true
+			},
 		},
 	},
 	bars: {
@@ -91,6 +122,12 @@ addLayer("bam", {
 			effectDescription: "Unlock new Layer",
 			done() {return player.bam.points.gte(20000) },
 		},
+		5: {
+			requirementDescription: "2.5e20 Bamboo",
+			effectDescription: "Bamboo effect is no longer hardcapped, it will be softcapped instead by: ",
+			done() {return player.bam.points.gte(2.5e20) },
+			unlocked(){return hasChallenge('st',21)}
+		},
 	},
 	update(diff){
 		if (hasUpgrade('bam', 12)) return player.bam.pHarvest = player.bam.pHarvest.add(5).min(1000)
@@ -114,7 +151,7 @@ addLayer("bam", {
 		"Harvest": {
 			content:["main-display", "resource-display", "prestige-button", "blank", ["bar", "Harvest"],
 			"blank",["display-text", function(){return 'Your Harvest Gauge '+format(player.bam.pHarvest)+'/900'}],
-			["display-text", function(){if(player.bam.pHarvest>900)return 'Bamboo is decaying!'}],"blank",["infobox","harv"]],
+			["display-text", function(){if(player.bam.pHarvest>900)return '<h4 style="color: red">Bamboo is decaying!</h4>'}],"blank",["infobox","harv"]],
 			unlocked(){return hasMilestone('bam', 2)},
 		},
 	},
@@ -123,12 +160,19 @@ addLayer("bam", {
         {key: "b", description: "b: Reset for Bamboo", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
     layerShown(){
-		if (hasUpgrade('s', 12) | player.bam.points > 0){
-			return true
-		}
+		if ((hasUpgrade('s', 12) | player.bam.points > 0)&&player.switch.treeSelect==1) return true
+		return false
 	},
 	onPrestige(){
 		player.bam.pHarvest = new Decimal(0)
+	},
+	deactivated(){
+		if(inChallenge('st', 12)) return true
+		if(inChallenge('st', 22)) return true
+	},
+	canReset(){
+		if(inChallenge('st',12)) return false
+		return true
 	},
 })
 
@@ -149,7 +193,7 @@ addLayer("mush", {
 	row: 1,
 	branches: ['s'],
 	layerShown(){
-		if (hasMilestone('bam', 4)) return true
+		if ((hasMilestone('bam', 4)|player.mush.points>0|player.st.total>0)&&player.switch.treeSelect==1) return true
 	},
 	requires: new Decimal(20),
 	resource: "Mushrooms",
@@ -161,15 +205,18 @@ addLayer("mush", {
 		return {
 			bayb: player.mush.points.div(500).times(20),
 			chan: player.mush.points.div(50000).times(20),
-			hney: player.mush.points.div(1e7).times(20).add(player.w.points.sqrt()).div(25)
+			hney: player.mush.points.div(1e7).times(20).add(player.w.points.sqrt()).div(25),
+			soft: softcap((player.mush.points), new Decimal(5) , 0.1)
 		}
 	},
 	gainMult() {
         let mult = new Decimal(1)
+		mult = mult.times(tmp.st.effect.st3).max(1)
+		if(player.mush.points>1e7) mult = mult.div(tmp.mush.effect.soft)
         return mult
     },
     gainExp() { 
-		if(player.mush.points>1e5) return new Decimal(0.9)
+		if(player.mush.points>1e5) return new Decimal(0.8)
         return new Decimal(1)
     },
 	update(diff){
@@ -192,7 +239,12 @@ addLayer("mush", {
 			if(hasUpgrade('w', 11))return '(<h3 style="color:#D39741">'+format(tmp.mush.effect.hney)+'</h3>/sec)'
 		}],"blank","blank","blank",["display-text", function(){
 			if(player.mush.points>1e5)return 'Your mushroom gain exponent is decreased, because you keep collecting them faster than they can regrow!'
-		}]]
+		}],"blank",["display-text", function(){
+			if(player.mush.points>1e7)return '<h4 style="color:#FFCCCC">Mushroom Gain has been SOFTCAPPED! by <h3 style="color:#FF8888">'+format(tmp.mush.effect.soft)+'x</h3></h4>'
+		}]],
+	deactivated(){
+		if(inChallenge('st', 22)) return true
+	}
 })
 
 addLayer("w", {
@@ -210,15 +262,22 @@ addLayer("w", {
     type: "normal", 
     exponent() {return 0.3},
 	effect() {
-		return player[this.layer].points.pow(0.5).min(25).times(10).add(1)
+		if(hasUpgrade('w',22)) return player[this.layer].points.pow(0.5).add(1).times(upgradeEffect('bam',14)).div(tmp.w.effectSoft)
+		if(hasUpgrade('bam',14)) return player[this.layer].points.pow(0.5).add(1).min(1250).times(upgradeEffect('bam',14))
+		return player[this.layer].points.pow(0.5).add(1).min(250)
+	},
+	effectSoft(){
+		return softcap((player.bam.points.max(1)), new Decimal(5) , 0.05)
 	},
 	effectDescription(){
+		if(hasUpgrade('w',22)) return "multiplying point gain by "+format(tmp[this.layer].effect)+",<br> Softcapped by "+format(tmp.w.effectSoft)
 		return "multiplying point gain by " + format(tmp[this.layer].effect)
 	},
 	gainMult() {
         let mult = new Decimal(1)
-		if(getBuyableAmount("s", 11)>0)mult = mult.times(buyableEffect("s", 11))
 		mult = mult.times(player.mush.mushC.sqrt()).add(1)
+		if(player.st.sand>0)mult = mult.times(tmp.st.effect.st3).max(1)
+		if(getBuyableAmount("s", 11)>0) mult = mult.times(buyableEffect("s", 11))
         return mult
     },
     gainExp() { 
@@ -233,11 +292,12 @@ addLayer("w", {
 	row: 1,
 	branches: ['s'],
 	layerShown(){
-		if (hasUpgrade('s', 15) | player.w.points > 0) return true
+		if ((hasUpgrade('s', 15) | player.w.points > 0)&&player.switch.treeSelect==1) return true
+		if (inChallenge('st',12)) return true
 	},
 	upgrades:{
 		11:{
-			title: "<img src='js/Wood.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Bizarre Partnership",
+			title: "<img src='js/Mush.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Bizarre Partnership",
 			tooltip: "I get carbohydrates, you get water and nutrients",
 			cost: new Decimal(100),
 			description: "Unlock new type of Mini-Mushroom"
@@ -270,9 +330,39 @@ addLayer("w", {
 			description: "Unlock new Tab in Laboratory",
 			unlocked(){if(hasUpgrade('w',14)) return true}
 		},
+		21:{
+			title: "<img src='js/Stone.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Wood-based Drill",
+			tooltip: "It isn't much, but it's honest work",
+			cost: new Decimal(2.5e7),
+			description: "Wood Boosts Stone Gain",
+			effect(){
+				return player.w.points.log(10).max(1)
+			},
+			effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" },
+			unlocked(){
+				if(hasMilestone('st',0)) return true
+			},
+		},
+		22:{
+			title: "<img src='js/Wood.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Wooden Engineering",
+			tooltip: "It moves, but it failed in every automated tasks",
+			cost: new Decimal(2.5e10),
+			description: "Wood effect will no longer be hardcapped, it will be softcapped instead",
+			unlocked(){
+				if(hasChallenge('st',21)) return true
+			},
+		},
 	},
 	tabFormat:
 		["main-display", "resource-display", "prestige-button", "blank", "upgrades"],
+	deactivated(){
+		if(inChallenge('st', 11)) return true
+		if(inChallenge('st', 22)) return true
+	},
+	canReset(){
+		if(inChallenge('st',11)) return false
+		return true
+	},
 })
 
 addLayer("FoodA", {
@@ -310,9 +400,9 @@ addLayer("FoodA", {
 		return "#AD8D22"
 	},
 	row: 1,
-	branches: ['bam'],
+	branches: ['bam','s'],
 	layerShown(){
-		if (getBuyableAmount('s', 21)>0) return true
+		if (getBuyableAmount('s', 21)>0&&player.switch.treeSelect==1) return true
 	},
 	canReset(){
 		if (player.s.stor.gte(player.s.storMax)) return false
@@ -429,7 +519,10 @@ addLayer("FoodA", {
 		return 'You have <h2 style="color:#FFA000">'+formatWhole(player.FoodA.carrot)+'</h2> Carrots, <h2 style="color:#A6D71C">'+formatWhole(player.FoodA.onion)+'</h2> Onions, <h2 style="color:#CBE57E">'+formatWhole(player.FoodA.cabbage)+'</h2> Cabbages, <h2 style="color:#987458">'+formatWhole(player.FoodA.potato)+'</h2> Potatos'
 	}],"blank",["row", [["clickable", "31"],["clickable", "32"],["clickable", "33"]]],"blank",["display-text", function(){
 		return 'You have <h2 style="color:#FF0000">'+formatWhole(player.FoodA.apple)+'</h2> Apples, <h2 style="color:#FFFF00">'+formatWhole(player.FoodA.banana)+'</h2> Bananas, <h2 style="color:#8000FF">'+formatWhole(player.FoodA.grapes)+'</h2> Bunches of Grapes'
-	}]]
+	}]],
+	resetsNothing() {
+		return true
+	},
 })
 
 addLayer("FoodB", {
@@ -465,9 +558,9 @@ addLayer("FoodB", {
 		return "#992A2A"
 	},
 	row: 1,
-	branches: ['w'],
+	branches: ['w','s'],
 	layerShown(){
-		if (getBuyableAmount('s', 12)>0) return true
+		if (getBuyableAmount('s', 12)>0&&player.switch.treeSelect==1) return true
 	},
 	canReset(){
 		if (player.s.stor.gte(player.s.storMax)) return false
@@ -475,9 +568,9 @@ addLayer("FoodB", {
 	},
 	effect(){
 		return {
-			milk: player.FoodB.cow.times(getBuyableAmount('s', 12)).div(20000).times(20),
-			eggs: player.FoodB.chk.times(getBuyableAmount('s', 12)).div(40000).times(20),
-			wool: player.FoodB.shp.times(getBuyableAmount('s', 12)).times(20),
+			milk: player.FoodB.cow.times(buyableEffect('s', 12)).div(20000).times(20),
+			eggs: player.FoodB.chk.times(buyableEffect('s', 12)).div(40000).times(20),
+			wool: player.FoodB.shp.times(buyableEffect('s', 12)).times(20),
 		}
 	},
 	update(diff){
@@ -553,7 +646,10 @@ addLayer("FoodB", {
 		return 'You have <h2 style="color:#CA2D25">'+formatWhole(player.FoodB.shp)+'</h2> of Mutton, which made you <h3 style="color:#ffffff">'+format(player.FoodB.wol)+'</h3> Wool   <h3>('+format(tmp.FoodB.effect.wool)+'/sec)</h3>'
 	}],"blank",["display-text", function(){ if (hasUpgrade('s', 25))
 		return 'You have <h2 style="color:#67988C">'+formatWhole(player.FoodB.fsh)+'</h2> of Seafood'
-	}]]
+	}]],
+	resetsNothing() {
+		return true
+	},
 })
 
 addLayer("st", {
@@ -563,6 +659,15 @@ addLayer("st", {
     startData() { return {
         unlocked: true,
 		points: new Decimal(0),
+		total: new Decimal(0),
+		randRes: new Decimal(0),
+		resType: new Decimal(0),
+		stShard: new Decimal(0),
+		clay: new Decimal(0),
+		sand: new Decimal(0),
+		chall1Mult: new Decimal(0),
+		chall2Mult: new Decimal(0),
+		chall3Mult: new Decimal(0),
     }},
 	requires: new Decimal(5),
 	resource: "Stone",
@@ -571,7 +676,8 @@ addLayer("st", {
     type: "normal", 
     exponent: 0.5,
 	gainMult() {
-        let mult = new Decimal(0)
+        let mult = new Decimal(1)
+		if(hasUpgrade('w',21)) mult = mult.times(upgradeEffect('w',21))
         return mult
     },
     gainExp() { 
@@ -580,10 +686,230 @@ addLayer("st", {
     color() {
 		return "#606A7A"
 	},
+	glowColor() {
+		return "#939DAD"
+	},
 	row: 2,
 	branches: ['w'],
 	layerShown(){
-		if (getBuyableAmount('s', 22)>0) return true
+		if (getBuyableAmount('s', 22)>0&&player.switch.treeSelect==1) return true
+		if(player.switch.treeSelect!=1) return false
 	},
-	resetsNothing: true,
+	effect(){
+		if(inChallenge('st',21)) return{
+			st1: new Decimal(1),
+			st2: new Decimal(1),
+			st3: new Decimal(1),
+		}
+		return {
+			st1: player.st.stShard.add(1).log(2),
+			st2: player.st.clay.add(1).log(5),
+			st3: player.st.sand.add(1).log(5),
+		}
+	},
+	clickables: {
+		11:{
+			title: "Mine Stone",
+			display(){ return "There is a chance to obtain some resources!"},
+			canClick(){
+				if(player.st.points.gte(1)) return true
+			},
+			onClick(){
+				player.st.points = player.st.points.sub(1)
+				if(player.st.points<=10) player.st.resType = Math.floor(Math.random()*(2-1)+1)
+				if(hasChallenge('st',11)) player.st.resType = Math.floor(Math.random()*(3-1)+1)
+				if(hasChallenge('st',12)) player.st.resType = Math.floor(Math.random()*(4-1)+1)
+				player.st.randRes = Decimal.floor(Math.random()*(11+4)-4)
+				if(player.st.resType==1&&player.st.randRes>0)player.st.stShard = player.st.stShard.add((player.st.randRes).add(player.st.points.divide(100)).times(player.st.chall1Mult.add(1)))
+				if(player.st.resType==2&&player.st.randRes>0)player.st.clay = player.st.clay.add((player.st.randRes).add(player.st.points.divide(100)).times(player.st.chall2Mult.add(1)))
+				if(player.st.resType==3&&player.st.randRes>0)player.st.sand = player.st.sand.add(player.st.randRes).add(player.st.points.divide(100))
+			},
+			effect(){
+				let multi = new Decimal(player.st.randRes)
+				return{
+					Odlam: multi.add(player.st.points.divide(100)).times(player.st.chall1Mult.add(1)),
+					Glina: multi.add(player.st.points.divide(100)).times(player.st.chall2Mult.add(1)),
+					Piask: multi.add(player.st.points.divide(100)),
+				}
+			},
+			unlocked(){
+				return true
+			}
+		}
+	},
+	milestones:{
+		0:{
+			requirementDescription: "1 Stone Total",
+			effectDescription: "You unlock Some new Upgrades in Bamboo and Wood Layer",
+			done() { return player.st.total.gte(1) }
+		},
+		1:{
+			requirementDescription: "1000 Stone Total",
+			effectDescription: "You unlock new Blueprints!",
+			done() { return player.st.total.gte(1000) }
+		},
+		2:{
+			requirementDescription: "15000 Stone Total",
+			effectDescription: "You unlock Stone Challenges",
+			done() { return player.st.total.gte(15000) }
+		},
+	},
+	challenges: {
+		11:{
+			name:"Death of Forests",
+			challengeDescription: "You can\'t gain any Wood and it\'s upgrades do not work<br>",
+			rewardDescription() {
+				if (!hasChallenge('st',11)) return "You unlock new Material type in Mines"
+				return "Multiplies your Stone Shard gain based on Your challenge points, Currently: "+format(player.st.chall1Mult.add(1))+"x<br>Your Challenge points: "+format(player.st.chall1Mult)
+			},
+			goalDescription() {return " "+format(new Decimal(10).pow(player.st.chall1Mult.add(9)))+" Knowledge"},
+			canComplete(){
+				return player.points.gte(1e9)
+			},
+			onEnter(){
+				layerDataReset("bam"),
+				layerDataReset("mush"),
+				layerDataReset("w"),
+				player.points = new Decimal(0)
+			},
+			onExit(){
+				let ChallPoint=player.points.log(10).sub(8).round()
+				if(ChallPoint<=player.st.chall1Mult) player.st.chall1Mult = player.st.chall1Mult
+				if(ChallPoint>player.st.chall1Mult) player.st.chall1Mult = ChallPoint
+			},
+			unlocked(){
+				return true
+			}
+		},
+		12:{
+			name:"Swarm of Bamboo <br>Mites",
+			challengeDescription: "You can\'t gain any Bamboo and it\'s upgrades do not work<br>",
+			rewardDescription() {
+				if (!hasChallenge('st',12)) return "You unlock new Material type in Mines"
+				return "Multiplies your Clay gain based on Your challenge points, Currently: "+format(player.st.chall2Mult.add(1))+"x<br>Your Challenge points: "+format(player.st.chall2Mult)
+			},
+			goalDescription() {return " "+format(new Decimal(10).pow(player.st.chall2Mult.add(6)))+" Knowledge"},
+			canComplete(){
+				return player.points.gte(1e6)
+			},
+			onEnter(){
+				layerDataReset("bam"),
+				layerDataReset("mush"),
+				layerDataReset("w"),
+				player.points = new Decimal(0)
+			},
+			onExit(){
+				let ChallPoint=player.points.log(10).sub(5).round()
+				if(ChallPoint<=player.st.chall2Mult) player.st.chall2Mult = player.st.chall2Mult
+				if(ChallPoint>player.st.chall2Mult) player.st.chall2Mult = ChallPoint
+			},
+			unlocked(){
+				if (hasChallenge('st',12)) return true
+				if (player.st.total.gte(30000)&&player.st.stShard.gte(1e5)) return true
+				return false
+			}
+		},
+		21:{
+			name:"Hyper-Erosion",
+			challengeDescription: "Stone Materials do nothing<br>",
+			rewardDescription() {
+				if (!hasChallenge('st',21)) return "You unlock Milestone in Bamboo layer and Upgrade in Wood layer"
+				return "Multiplies your Sand gain based on Your challenge points, Currently: "+format(player.st.chall3Mult.add(1))+"x<br>Your Challenge points: "+format(player.st.chall3Mult)
+			},
+			goalDescription() {return " "+format(new Decimal(10).pow(player.st.chall3Mult.add(15)))+" Knowledge"},
+			canComplete(){
+				return player.points.gte(1e15)
+			},
+			onEnter(){
+				layerDataReset("bam"),
+				layerDataReset("mush"),
+				layerDataReset("w"),
+				player.points = new Decimal(0)
+			},
+			onExit(){
+				let ChallPoint=player.points.log(10).sub(14).round()
+				if(ChallPoint<=player.st.chall3Mult) player.st.chall3Mult = player.st.chall3Mult
+				if(ChallPoint>player.st.chall3Mult) player.st.chall3Mult = ChallPoint
+			},
+			unlocked(){
+				if (hasChallenge('st',21)) return true
+				if (player.st.total.gte(45000)&&player.st.clay.gte(2.5e5)) return true
+				return false
+			}
+		},
+		22:{
+			name:"Idiotism",
+			challengeDescription: "Row 1 Layers are deactivated, point gain is raised to ^0.75 and Eating Habit Stats are reseted<br>",
+			rewardDescription() {
+				return "You unlock New Resource Tree"
+			},
+			goalDescription() {return "10,000,000 Knowledge"},
+			canComplete(){
+				return player.points.gte(1e7)
+			},
+			onEnter(){
+				layerDataReset("bam"),
+				layerDataReset("mush"),
+				layerDataReset("w"),
+				player.points = new Decimal(0)
+				player.s.eat1 = new Decimal(0)
+				player.s.eat2 = new Decimal(0)
+				player.s.eat3 = new Decimal(0)
+				player.s.eat4 = new Decimal(0)
+				player.s.eatHap = new Decimal(0)
+			},
+			unlocked(){
+				if (hasChallenge('st',22)) return true
+				if (player.st.total.gte(50000)&&player.st.sand.gte(1e5)) return true
+				return false
+			}
+		},
+	},
+	tabFormat:{
+		"Mine":{
+			content: ["main-display",["display-text", function(){
+				return "Collected total of "+formatWhole(player.st.total)+" Stone"
+			}],"blank", ["display-text", function(){
+				return "You have "+formatWhole(player.s.PickPow)+" Pickaxe Power"
+			}],"blank","prestige-button", "blank", "clickables", "blank",["display-text", function(){ if(player.st.randRes<=0&player.st.randRes>-9&player.st.total!=0)
+			return 'You\'ve mined nothing!'
+		}],["display-text", function(){ if(player.st.randRes>0&&player.st.resType==1)
+			return 'You\'ve mined <h2 style="color:#606A7A">'+format(tmp.st.clickables[11].effect.Odlam)+'</h2> of Stone Shards'
+		}],["display-text", function(){ if(player.st.randRes>0&&player.st.resType==2)
+			return 'You\'ve mined <h2 style="color:#B0674D">'+format(tmp.st.clickables[11].effect.Glina)+'</h2> of Clay'
+		}],["display-text", function(){ if(player.st.randRes>0&&player.st.resType==3)
+			return 'You\'ve mined <h2 style="color:#c2b280">'+format(tmp.st.clickables[11].effect.Piask)+'</h2> of Sand Piles'
+		}],"blank",["display-text", function(){
+			return '<h2 style="color:#606A7A">'+format(player.st.stShard)+'</h2> of Stone Shards, which multiply your Knowledge Gain by <h3>'+format(tmp.st.effect.st1)+'x</h3>'
+		}],["display-text", function(){ if(hasChallenge('st',11))
+			return '<h2 style="color:#B0674D">'+format(player.st.clay)+'</h2> of Clay, which adds to your Eating habit Bonus by <h3>'+format(tmp.st.effect.st2)+'x</h3>'
+		}],["display-text", function(){ if(hasChallenge('st',12))
+			return '<h2 style="color:#c2b280">'+format(player.st.sand)+'</h2> of Sand Piles, which multiply your Row 1 Materials Gain by <h3>'+format(tmp.st.effect.st3)+'x</h3>'
+		}]]},
+		"Milestones":{
+			content:["main-display",["display-text", function(){
+				return "Collected total of "+formatWhole(player.st.total)+" Stone"
+			}],"blank", ["display-text", function(){
+				return "You have "+formatWhole(player.s.PickPow)+" Pickaxe Power"
+			}],"blank","prestige-button", "blank","milestones"],
+			unlocked(){if(hasMilestone('st',0)) return true
+			return false}
+		},
+		"Challenges":{
+			content:[["display-text", function(){
+				return "<h3 style='color: #FF0000'>Warning!</h3> Challenges causes resets of previous layers!"
+			}],"blank" ,["display-text", function(){ 
+				if (player.st.challenges[12]==0) return "Next challenge unlocks at 30000 total Stone and 100000 Stone Shards"
+				if (player.st.challenges[21]==0) return "Next challenge unlocks at 45000 total Stone and 250000 Clay"
+				if (player.st.challenges[22]==0) return "Next challenge unlocks at 50000 total Stone and 100000 Sand"
+			}],"blank" ,"challenges"],
+			unlocked(){if(hasMilestone('st',2)) return true
+			return false}
+		},
+	},
+	resetsNothing() {
+		return true
+	},
+	onPrestige(){
+		return player.st.randRes = new Decimal(-10)}
 })

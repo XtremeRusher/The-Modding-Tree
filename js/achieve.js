@@ -63,10 +63,13 @@ addLayer("a", {
 			name: "Peaceful Japanese Village",
 			done() {
 				let PJV = getPointGen()
-				return PJV>=1.4e6 & player.w.points<1
+				return (PJV>=1.4e6 & player.w.points<1)||hasAchievement('a',24)
 			},
 			goalTooltip: "Have 1,4M Knowledge gain per sec, before getting any Wood!",
-			doneTooltip: "Reward: 1.1x Multiplier to points",
+			doneTooltip() {
+				if (hasAchievement('a',24)) return "Reward: 4x Multiplier to points"
+				return "Reward: 1.1x Multiplier to points"
+			},
 			style: {
 				width: "96px",
 				height: "96px",
@@ -105,6 +108,67 @@ addLayer("a", {
 			style: {
 				width: "96px",
 				height: "96px",
+			}
+		},
+		24: {
+			name: "Craftsman Art & Perfection",
+			done() {
+				return (getBuyableAmount("s", "11").add(getBuyableAmount("s", "12")).add(getBuyableAmount("s", "21")).add(getBuyableAmount("s", "22"))==40)&&player.s.total<1
+			},
+			goalTooltip: "Max out Tools' levels before mining any Stone",
+			doneTooltip: "Reward: Make \"Peaceful Japanese Village\" Effect better, and unlock it if not obtained already",
+			style: {
+				width: "96px",
+				height: "96px",
+				color: "#BA0000"
+			}
+		},
+		25: {
+			name: "Stone Age!",
+			done() {
+				return player.st.total>0
+			},
+			tooltip: "Get your 1st Stone",
+			style: {
+				width: "96px",
+				height: "96px",
+			}
+		},
+		31: {
+			name: "Shining Law of The Strong Defeating the Weak",
+			done() {
+				return hasChallenge('st',11)
+			},
+			tooltip: "Complete \"Death of Forests\" at least once",
+			style: {
+				width: "96px",
+				height: "96px",
+			}
+		},
+		32: {
+			name: "Immortal Brain Cells",
+			done() {
+				return hasChallenge('st',22)
+			},
+			tooltip: "Complete \"Idiotism\"",
+			style: {
+				width: "96px",
+				height: "96px",
+			}
+		},
+		33: {
+			name: "Copper Era!",
+			done() {
+				return player.met11.total>0
+			},
+			goalTooltip: "Get your 1st Copper ore",
+			doneTooltip() {
+				return "Raise your point gain to ^1.05"
+			},
+			style: {
+				width: "96px",
+				height: "96px",
+				color: "#BA8700"
 			}
 		},
 	},

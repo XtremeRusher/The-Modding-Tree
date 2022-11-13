@@ -17,7 +17,7 @@ addLayer("s", {
     }},
     color() {
 		if(hasUpgrade('s', 11)) return "#ffa0a0"
-		return "ff0000"
+		return "#ffffff"
 	},
 	glowColor() {
 		return "#FF0000"
@@ -51,6 +51,7 @@ addLayer("s", {
 		player.s.eatHap = player.s.eatHap.sub(0.01).max(0).min(100)
 	},
 	effect(){
+		if(player.st.clay>0) return player.s.eat1.div(10).times(player.s.eat2.div(10).max(1)).times(player.s.eat3.div(10).max(1)).times(player.s.eat4.div(10).max(1)).times(player.s.eatHap.div(10).max(1)).max(1).times(tmp.st.effect.st2)
 		return player.s.eat1.div(10).times(player.s.eat2.div(10).max(1)).times(player.s.eat3.div(10).max(1)).times(player.s.eat4.div(10).max(1)).times(player.s.eatHap.div(10).max(1)).max(1)
 	},
 	upgrades: {
@@ -103,7 +104,10 @@ addLayer("s", {
 			currencyDisplayName:"Knowledge",
 			currencyInternalName:"points",
 			tooltip: "Common, but very durable. Hardest green material!",
-			unlocked(){return hasUpgrade('s', 14)}
+			unlocked(){
+				if(inChallenge('st',11)) return false
+				return hasUpgrade('s', 14)
+			}
 		},
 		21:{
 			title: "<img src='js/OtherPNG/Axe0.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Axe Blueprint",
@@ -113,7 +117,9 @@ addLayer("s", {
 			currencyLayer:"w",
 			currencyInternalName:"points",
 			description: "Unlock new Buyable in Workbench",
-			unlocked(){if(hasUpgrade('w',13)) return true}
+			unlocked(){if(hasUpgrade('s',32)) return false
+				if(hasUpgrade('w',13)) return true
+			},
 		},
 		22:{
 			title: "<img src='js/OtherPNG/Sword0.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Sword Blueprint",
@@ -123,7 +129,8 @@ addLayer("s", {
 			currencyLayer:"w",
 			currencyInternalName:"points",
 			description: "Unlock new Buyable in Workbench",
-			unlocked(){if(hasUpgrade('w',15)) return true}
+			unlocked(){if(hasUpgrade('s',33)) return false
+				if(hasUpgrade('w',13)) return true}
 		},
 		23:{
 			title: "<img src='js/OtherPNG/Scythe0.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Scythe Blueprint",
@@ -133,7 +140,9 @@ addLayer("s", {
 			currencyLayer:"w",
 			currencyInternalName:"points",
 			description: "Unlock new Buyable in Workbench",
-			unlocked(){if(hasUpgrade('w',15)) return true}
+			unlocked(){if(hasUpgrade('s',34)) return false
+				if(hasUpgrade('w',13)) return true
+			}
 		},
 		24:{
 			title: "<img src='js/OtherPNG/Pick0.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Pickaxe Blueprint",
@@ -143,7 +152,9 @@ addLayer("s", {
 			currencyLayer:"w",
 			currencyInternalName:"points",
 			description: "Unlock new Buyable in Workbench",
-			unlocked(){if(hasUpgrade('w',13)) return true}
+			unlocked(){if(hasUpgrade('s',35)) return false
+				if(hasUpgrade('w',13)) return true
+			}
 		},
 		25:{
 			title: "<img src='js/Meat.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Fishing Rod",
@@ -155,122 +166,248 @@ addLayer("s", {
 			description: "Unlock new Type of Meat",
 			unlocked(){if(getBuyableAmount('s', 12)>0) return true}
 		},
+		31:{
+			title: "<img src='js/Wood.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Simplified Wooden House",
+			tooltip: "Home, Sweet Home!",
+			cost: new Decimal(1.5e7),
+			currencyDisplayName:"Wood",
+			currencyLayer:"w",
+			currencyInternalName:"points",
+			description: "Multiplies Knowledge gain by 100, but nullifies \"Simple Bamboo Facility\"",
+			unlocked(){if(hasMilestone('st',0)) return true},
+		},
+		32:{
+			tooltip: "Now it will be easier to cut down the trees",
+			fullDisplay(){
+				return "<img src='js/OtherPNG/Axe1.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> <h3>Axe Blueprint</h3>\n\
+				<br>Unlock new Buyable in Workbench<br><br>Cost: 40000 Wood, 100 Stone"
+			},
+			canAfford(){
+				return player.w.points.gte(40000) && player.st.points.gte(100)
+			},
+			pay(){
+				player.w.points = player.w.points.sub(40000)
+				player.st.points = player.st.points.sub(100)
+			},
+			onPurchase(){
+				setBuyableAmount('s', '11', getBuyableAmount('s', '11').times(0).add(1))
+			},
+			unlocked(){if(hasMilestone('st',1)) return true},
+		},
+		33:{
+			tooltip: "Maybe there are some monsters?...",
+			fullDisplay(){
+				return "<img src='js/OtherPNG/Sword1.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> <h3>Sword Blueprint</h3>\n\
+				<br>Unlock new Buyable in Workbench<br><br>Cost: 120000 Wood, 300 Stone"
+			},
+			canAfford(){
+				return player.w.points.gte(120000) && player.st.points.gte(300)
+			},
+			pay(){
+				player.w.points = player.w.points.sub(120000)
+				player.st.points = player.st.points.sub(300)
+			},
+			onPurchase(){
+				setBuyableAmount('s', '12', getBuyableAmount('s', '12').times(0).add(1))
+			},
+			unlocked(){if(hasMilestone('st',1)) return true}
+		},
+		34:{
+			title: "<img src='js/OtherPNG/Scythe1.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> Scythe Blueprint",
+			tooltip: "I'm Crop Reaper!",
+			fullDisplay(){
+				return "<img src='js/OtherPNG/Scythe1.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> <h3>Scythe Blueprint</h3>\n\
+				<br>Unlock new Buyable in Workbench<br><br>Cost: 360000 Wood, 900 Stone"
+			},
+			canAfford(){
+				return player.w.points.gte(360000) && player.st.points.gte(900)
+			},
+			pay(){
+				player.w.points = player.w.points.sub(360000)
+				player.st.points = player.st.points.sub(900)
+			},
+			onPurchase(){
+				setBuyableAmount('s', '21', getBuyableAmount('s', '21').times(0).add(1))
+			},
+			unlocked(){if(hasMilestone('st',1)) return true}
+		},
+		35:{
+			tooltip: "Let's dive into caverns!",
+			fullDisplay(){
+				return "<img src='js/OtherPNG/Pick1.png' style='width:calc(60%);height:calc(60%);margin:10%'></img> <h3>Pickaxe Blueprint</h3>\n\
+				<br>Unlock new Buyable in Workbench<br><br>Cost: 1080000 Wood, 2700 Stone"
+			},
+			canAfford(){
+				return player.w.points.gte(1080000) && player.st.points.gte(2700)
+			},
+			pay(){
+				player.w.points = player.w.points.sub(1080000)
+				player.st.points = player.st.points.sub(2700)
+			},
+			onPurchase(){
+				setBuyableAmount('s', '22', getBuyableAmount('s', '22').times(0).add(1))
+			},
+			unlocked(){if(hasMilestone('st',1)) return true}
+		},
 	},
 	buyables:{
 		11:{
-			title: "Wooden Axe <img src='js/OtherPNG/Axe0.png' style='width:calc(40%);height:calc(40%);margin:10%'></img>",
+			title() {
+				if(hasUpgrade('s',32)) return "Stone Axe <img src='js/OtherPNG/Axe1.png' style='width:calc(40%);height:calc(40%);margin:10%'></img>"
+				return "Wooden Axe <img src='js/OtherPNG/Axe0.png' style='width:calc(40%);height:calc(40%);margin:10%'></img>"
+			},
 			cost(prc=player[this.layer].buyables[this.id]){
-				let cost = { knw: new Decimal(8).pow(prc), drw: new Decimal(10).times(prc).pow(2)}
-				return cost
+				if(hasUpgrade('s',32)) return { knw: new Decimal(8).times(2).pow(prc), drw: new Decimal(10).times(prc)}
+				return { knw: new Decimal(8).pow(prc), drw: new Decimal(10).times(prc).pow(2)}
 			},
 			display() { 
-				let display = "Cost: "+formatWhole(tmp.s.buyables[11].cost.knw)+" Knowledge and "+formatWhole(tmp.s.buyables[11].cost.drw)+" Wood\n\
+				if(hasUpgrade('s',32)) return "Cost: "+formatWhole(tmp.s.buyables[11].cost.knw)+" Knowledge and "+formatWhole(tmp.s.buyables[11].cost.drw)+" Stone Shards\n\
+				Boost to Wood Gain: "+format(tmp.s.buyables[11].effect)+"x\n\
+				Level: "+formatWhole(getBuyableAmount("s", 11))+"/30"
+				return "Cost: "+formatWhole(tmp.s.buyables[11].cost.knw)+" Knowledge and "+formatWhole(tmp.s.buyables[11].cost.drw)+" Wood\n\
 				Boost to Wood Gain: "+format(tmp.s.buyables[11].effect)+"x\n\
 				Level: "+formatWhole(getBuyableAmount("s", 11))+"/15"
-				return display;
 			},
 			canAfford(){
 				let cost = tmp[this.layer].buyables[this.id].cost
+				if(hasUpgrade('s',32)) return player.points.gte(tmp[this.layer].buyables[this.id].cost.knw) & player.st.stShard.gte(tmp[this.layer].buyables[this.id].cost.drw)
 				return player.points.gte(tmp[this.layer].buyables[this.id].cost.knw) & player.w.points.gte(tmp[this.layer].buyables[this.id].cost.drw)
 			},
 			buy(){
 				let cost = tmp[this.layer].buyables[this.id].cost
 				if (cost.knw) player.points = player.points.sub(cost.knw);
-				if (cost.drw) player.w.points = player.w.points.sub(cost.drw);
+				if (cost.drw&&hasUpgrade('s',32)) player.st.stShard = player.st.stShard.sub(cost.drw);
+				if (!hasUpgrade('s',32)&cost.drw) player.w.points = player.w.points.sub(cost.drw);
             	setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
 			},
 			effect(){
 				eff = new Decimal(1).times(getBuyableAmount("s", 11))
+				if(hasUpgrade('s',32)) return eff = eff.times(1.1)
 				return eff = eff
 			},
-			purchaseLimit: new Decimal(15),
+			purchaseLimit() {
+				if(hasUpgrade('s',32)) return new Decimal(30)
+				return new Decimal(15)
+			},
 			unlocked(){if (hasUpgrade('s', 21)) return true}
 		},
 		12:{
-			title: "Wooden Sword <img src='js/OtherPNG/Sword0.png' style='width:calc(40%);height:calc(40%);margin:10%'></img>",
+			title() {
+				if(hasUpgrade('s',33)) return "Stone Sword <img src='js/OtherPNG/Sword1.png' style='width:calc(40%);height:calc(40%);margin:10%'></img>"
+				return "Wooden Sword <img src='js/OtherPNG/Sword0.png' style='width:calc(40%);height:calc(40%);margin:10%'></img>"},
 			cost(prc=player[this.layer].buyables[this.id]){
-				let cost = { knw: new Decimal(50).pow(prc), drw: new Decimal(10).times(prc).pow(2.5)}
-				return cost
+				if(hasUpgrade('s',33)) return { knw: new Decimal(50).times(1.5).pow(prc), drw: new Decimal(20).times(prc)}
+				return { knw: new Decimal(50).pow(prc), drw: new Decimal(10).times(prc).pow(2.5)}
 			},
 			display() { 
-				let display = "Cost: "+formatWhole(tmp.s.buyables[12].cost.knw)+" Knowledge and "+formatWhole(tmp.s.buyables[12].cost.drw)+" Wood\n\
+				if(hasUpgrade('s',33)) return "Cost: "+formatWhole(tmp.s.buyables[12].cost.knw)+" Knowledge and "+formatWhole(tmp.s.buyables[12].cost.drw)+" Stone Shards\n\
+				Boost to Animal product Gain: "+format(tmp.s.buyables[12].effect)+"x\n\
+				Level: "+formatWhole(getBuyableAmount("s", 12))+"/20"
+				return "Cost: "+formatWhole(tmp.s.buyables[12].cost.knw)+" Knowledge and "+formatWhole(tmp.s.buyables[12].cost.drw)+" Wood\n\
 				Boost to Animal product Gain: "+format(tmp.s.buyables[12].effect)+"x\n\
 				Level: "+formatWhole(getBuyableAmount("s", 12))+"/10"
-				return display;
 			},
 			canAfford(){
 				let cost = tmp[this.layer].buyables[this.id].cost
+				if(hasUpgrade('s',33)) return player.points.gte(tmp[this.layer].buyables[this.id].cost.knw) & player.st.stShard.gte(tmp[this.layer].buyables[this.id].cost.drw)
 				return player.points.gte(tmp[this.layer].buyables[this.id].cost.knw) & player.w.points.gte(tmp[this.layer].buyables[this.id].cost.drw)
 			},
 			buy(){
 				let cost = tmp[this.layer].buyables[this.id].cost
 				if (cost.knw) player.points = player.points.sub(cost.knw);
-				if (cost.drw) player.w.points = player.w.points.sub(cost.drw);
+				if (cost.drw&&hasUpgrade('s',33)) player.st.stShard = player.st.stShard.sub(cost.drw);
+				if (!hasUpgrade('s',33)&cost.drw) player.w.points = player.w.points.sub(cost.drw);
             	setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
 			},
 			effect(){
 				eff = new Decimal(1).times(getBuyableAmount("s", 12))
+				if(hasUpgrade('s',33))return eff = eff.times(1.25)
 				return eff = eff
 			},
-			purchaseLimit: new Decimal(10),
+			purchaseLimit() {
+				if(hasUpgrade('s',33)) return new Decimal(20)
+				return new Decimal(10)
+			},
 			unlocked(){if (hasUpgrade('s', 22)) return true}
 		},
 		21:{
-			title: "Wooden Scythe <img src='js/OtherPNG/Scythe0.png' style='width:calc(40%);height:calc(40%);margin:10%'></img>",
-			cost(prc=player[this.layer].buyables[this.id]){
-				let cost = { knw: new Decimal(50).pow(prc), drw: new Decimal(10).times(prc).pow(1.5)}
-				return cost
+			title() {
+				if(hasUpgrade('s',34)) return "Stone Scythe <img src='js/OtherPNG/Scythe1.png' style='width:calc(40%);height:calc(40%);margin:10%'></img>"
+				return "Wooden Scythe <img src='js/OtherPNG/Scythe0.png' style='width:calc(40%);height:calc(40%);margin:10%'></img>"
 			},
-			display() { 
-				let display = "Cost: "+formatWhole(tmp.s.buyables[21].cost.knw)+" Knowledge and "+formatWhole(tmp.s.buyables[21].cost.drw)+" Wood\n\
+			cost(prc=player[this.layer].buyables[this.id]){
+				if(hasUpgrade('s',34)) return { knw: new Decimal(50).times(1.5).pow(prc), drw: new Decimal(15).times(prc)}
+				return { knw: new Decimal(50).pow(prc), drw: new Decimal(10).times(prc).pow(1.5)}
+			},
+			display() {
+				if(hasUpgrade('s',34)) return "Cost: "+formatWhole(tmp.s.buyables[21].cost.knw)+" Knowledge and "+formatWhole(tmp.s.buyables[21].cost.drw)+" Stone Shards\n\
+				Boost to Bamboo Gain: "+format(tmp.s.buyables[21].effect)+"x\n\
+				Level: "+formatWhole(getBuyableAmount("s", 21))+"/20"
+				return "Cost: "+formatWhole(tmp.s.buyables[21].cost.knw)+" Knowledge and "+formatWhole(tmp.s.buyables[21].cost.drw)+" Wood\n\
 				Boost to Bamboo Gain: "+format(tmp.s.buyables[21].effect)+"x\n\
 				Level: "+formatWhole(getBuyableAmount("s", 21))+"/10"
-				return display;
 			},
 			canAfford(){
 				let cost = tmp[this.layer].buyables[this.id].cost
+				if(hasUpgrade('s',34)) return player.points.gte(tmp[this.layer].buyables[this.id].cost.knw) & player.st.stShard.gte(tmp[this.layer].buyables[this.id].cost.drw)
 				return player.points.gte(tmp[this.layer].buyables[this.id].cost.knw) & player.w.points.gte(tmp[this.layer].buyables[this.id].cost.drw)
 			},
 			buy(){
 				let cost = tmp[this.layer].buyables[this.id].cost
 				if (cost.knw) player.points = player.points.sub(cost.knw);
-				if (cost.drw) player.w.points = player.w.points.sub(cost.drw);
+				if (cost.drw&&hasUpgrade('s',34)) player.st.stShard = player.st.stShard.sub(cost.drw);
+				if (!hasUpgrade('s',34)&cost.drw) player.w.points = player.w.points.sub(cost.drw);
             	setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
 			},
 			effect(){
 				eff = new Decimal(10).times(getBuyableAmount("s", 21))
+				if(hasUpgrade('s',34))return eff = eff.times(1.25)
 				return eff = eff
 			},
-			purchaseLimit: new Decimal(10),
+			purchaseLimit() {
+				if(hasUpgrade('s',34)) return new Decimal(20)
+				return new Decimal(10)
+			},
 			unlocked(){if (hasUpgrade('s', 23)) return true}
 		},
 		22:{
-			title: "Wooden Pickaxe <img src='js/OtherPNG/Pick0.png' style='width:calc(40%);height:calc(40%);margin:10%'></img>",
+			title() {
+				if(hasUpgrade('s',35)) return "Stone Pickaxe <img src='js/OtherPNG/Pick1.png' style='width:calc(40%);height:calc(40%);margin:10%'></img>"
+				return "Wooden Pickaxe <img src='js/OtherPNG/Pick0.png' style='width:calc(40%);height:calc(40%);margin:10%'></img>"
+			},
 			cost(prc=player[this.layer].buyables[this.id]){
-				let cost = { knw: new Decimal(1000).pow(prc), drw: new Decimal(10).times(prc).pow(2.5)}
-				return cost
+				if(hasUpgrade('s',35)) return { knw: new Decimal(1000).pow(prc.add(1)), drw: new Decimal(200).times(prc.sub(2)).max(0)}
+				return { knw: new Decimal(1000).pow(prc.add(1)), drw: new Decimal(10).times(prc).pow(2.5)}
 			},
 			display() { 
-				let display = "Cost: "+formatWhole(tmp.s.buyables[22].cost.knw)+" Knowledge and "+formatWhole(tmp.s.buyables[22].cost.drw)+" Wood\n\
+				if(hasUpgrade('s',35)) return "Cost: "+formatWhole(tmp.s.buyables[22].cost.knw)+" Knowledge and "+formatWhole(tmp.s.buyables[22].cost.drw)+" Stone Shards\n\
+				Pickaxe Power: "+format(tmp.s.buyables[22].effect)+"\n\
+				Level: "+formatWhole(getBuyableAmount("s", 22))+"/10"
+				return "Cost: "+formatWhole(tmp.s.buyables[22].cost.knw)+" Knowledge and "+formatWhole(tmp.s.buyables[22].cost.drw)+" Wood\n\
 				Pickaxe Power: "+format(tmp.s.buyables[22].effect)+"\n\
 				Level: "+formatWhole(getBuyableAmount("s", 22))+"/5"
-				return display;
 			},
 			canAfford(){
 				let cost = tmp[this.layer].buyables[this.id].cost
+				if(hasUpgrade('s',35)) return player.points.gte(tmp[this.layer].buyables[this.id].cost.knw) & player.st.stShard.gte(tmp[this.layer].buyables[this.id].cost.drw)
 				return player.points.gte(tmp[this.layer].buyables[this.id].cost.knw) & player.w.points.gte(tmp[this.layer].buyables[this.id].cost.drw)
 			},
 			buy(){
 				let cost = tmp[this.layer].buyables[this.id].cost
 				if (cost.knw) player.points = player.points.sub(cost.knw);
-				if (cost.drw) player.w.points = player.w.points.sub(cost.drw);
+				if (cost.drw&&hasUpgrade('s',35)) player.st.stShard = player.st.stShard.sub(cost.drw);
+				if (!hasUpgrade('s',35)&cost.drw) player.w.points = player.w.points.sub(cost.drw);
             	setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
 			},
 			effect(){
 				eff = new Decimal(1).times(getBuyableAmount("s", 22))
+				if(hasUpgrade('s',35)) return eff = eff.times(2)
 				return eff = eff
 			},
-			purchaseLimit: new Decimal(5),
+			purchaseLimit() {
+				if(hasUpgrade('s',35)) return new Decimal(10)
+				return new Decimal(5)
+			},
 			unlocked(){if (hasUpgrade('s', 24)) return true}
 		},
 		a1:{
@@ -922,14 +1059,25 @@ addLayer("s", {
     layerShown: true,
 	doReset(){
 		let keep = []
-	  
 		if(hasMilestone('bam', 0))keep.push(11, 12)
-		if(hasMilestone('bam', 2)&hasUpgrade('s',13))keep.push(13)
+		if(inChallenge('st', 12)|inChallenge('st', 22))keep.push(11, 12)
+		if(hasUpgrade('s',13))keep.push(13)
 		if(hasUpgrade('s',14))keep.push(14)
 		if(player.w.points>0)keep.push(15)
-		keep.push[buyables]
+		if(getBuyableAmount('s',11).gte(1))keep.push(21)
+		if(getBuyableAmount('s',12).gte(1))keep.push(22)
+		if(getBuyableAmount('s',21).gte(1))keep.push(23)
+		if(getBuyableAmount('s',22).gte(1))keep.push(24)
+		if(hasUpgrade('s',25))keep.push(25)
+		if(hasUpgrade('s',31))keep.push(31)
+		if(getBuyableAmount('s',11).gte(1)&&hasUpgrade('s',32))keep.push(32)
+		if(getBuyableAmount('s',12).gte(1)&&hasUpgrade('s',33))keep.push(33)
+		if(getBuyableAmount('s',21).gte(1)&&hasUpgrade('s',34))keep.push(34)
+		if(getBuyableAmount('s',22).gte(1)&&hasUpgrade('s',35))keep.push(35)
+		keep.push("buyables")
+		keep.push("eatHap", "eat1", "eat2", "eat3", "eat4")
 	  
-		layerDataReset(this.layer)
+		layerDataReset(this.layer, keep)
 		// reset
 		
 		player[this.layer].upgrades = keep
